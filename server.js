@@ -3,7 +3,9 @@ const app = express();
 const server = require("http").Server(app);
 const { v4: uuidv4 } = require("uuid");
 const io = require("socket.io")(server);
-// Peer
+
+const { Sequelize } = require("sequelize");
+const { User } = require("./models/user_model");
 
 const { ExpressPeerServer } = require("peer");
 const peerServer = ExpressPeerServer(server, {
