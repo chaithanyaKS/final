@@ -16,6 +16,16 @@
           placeholder="password"
           required
         />
+        <% if (isNewMeeting) { %>
+        <input
+          type="text"
+          placeholder="meeting id"
+          name="meetingId"
+          value="<%= meetingId %>"
+          required
+          readonly
+        />
+        <% } else { %>
         <input
           type="text"
           placeholder="meeting id"
@@ -23,6 +33,7 @@
           value="<%= meetingId %>"
           required
         />
+        <% } %>
         <button type="submit">Login</button>
       </form>
     </div>

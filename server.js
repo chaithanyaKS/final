@@ -3,9 +3,16 @@ const app = express();
 const server = require("http").Server(app);
 const { v4: uuidv4 } = require("uuid");
 const io = require("socket.io")(server);
+const UserModel = require("./models/user");
+const { Sequelize, DataTypes } = require("sequelize");
 
-const { Sequelize } = require("sequelize");
-const { User } = require("./models/user_model");
+const sequelize = new Sequelize(
+  "mysql://root:chaithanya2934@localhost:3306/project"
+);
+
+const User = UserModel(sequelize, DataTypes);
+
+const loggedUsers = [];
 
 const { ExpressPeerServer } = require("peer");
 const peerServer = ExpressPeerServer(server, {
@@ -25,27 +32,35 @@ app.post("/", (req, res) => {
   const meetingId = req.body.meetingId;
   console.log(meetingId);
   if (meetingId) {
-    res.render("join_meeting_login", { meetingId });
+    res.render("meeting", { meetingId, isNewMeeting: false });
   } else {
-    res.render("new_meeting_login");
+    res.render("meeting", {
+      meetingId: uuidv4(),
+      isNewMeeting: true,
+    });
   }
 });
 
 app.post("/login", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
-  const meetingId = req.body.meetingId;
-  if (meetingId) {
-    console.log(meetingId);
-    res.redirect(`/${meetingId}`);
-  } else {
-    res.redirect(`/${uuidv4()}`);
+  if (loggedUsers.includes(username)) {
+    res.send("user already logged in");
   }
+  User.findOne({ where: { name: username, password } })
+    .then((user) => {
+      if (user) {
+        loggedUsers.push(user.name);
+        const meetingId = req.body.meetingId;
+        res.redirect(`/${meetingId}`);
+      } else {
+        res.send("Invalid credentials");
+      }
+    })
+    .catch((reason) => {
+      console.log(reason);
+    });
 });
-
-// app.get("/", (req, rsp) => {
-//   rsp.redirect(`/${uuidv4()}`);
-// });
 
 app.get("/sessions", (req, res) => {
   res.send("session history");
