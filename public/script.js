@@ -6,15 +6,16 @@ const videoGrid = document.getElementById("video-grid");
 const myVideo = document.createElement("video");
 myVideo.muted = true;
 
-var peer = new Peer(undefined, {
-  path: "/peerjs",
+const myPeer = new Peer(undefined, {
+  path: "/",
   host: "/",
-  port: "3000",
+  port: "3001",
 });
 
+const peers = {};
 let myVideoStream;
 
-var getUserMedia =
+const getUserMedia =
   navigator.getUserMedia ||
   navigator.webkitGetUserMedia ||
   navigator.mozGetUserMedia;
@@ -28,7 +29,7 @@ navigator.mediaDevices
     myVideoStream = stream;
     addVideoStream(myVideo, stream);
 
-    peer.on("call", (call) => {
+    myPeer.on("call", (call) => {
       call.answer(stream);
       const video = document.createElement("video");
 
@@ -57,7 +58,11 @@ navigator.mediaDevices
     });
   });
 
-peer.on("call", function (call) {
+socket.on("user-disconnected", (userId) => {
+  if (peers[userId]) peers[userId].close();
+});
+
+myPeer.on("call", function (call) {
   getUserMedia(
     { video: true, audio: true },
     function (stream) {
@@ -73,20 +78,25 @@ peer.on("call", function (call) {
   );
 });
 
-peer.on("open", (id) => {
+myPeer.on("open", (id) => {
   socket.emit("join-room", ROOM_ID, id);
 });
 
 // CHAT
 
 const connectToNewUser = (userId, streams) => {
-  var call = peer.call(userId, streams);
+  const call = myPeer.call(userId, streams);
   console.log(call);
-  var video = document.createElement("video");
+  const video = document.createElement("video");
   call.on("stream", (userVideoStream) => {
     console.log(userVideoStream);
     addVideoStream(video, userVideoStream);
   });
+  call.on("close", () => {
+    video.remove();
+  });
+
+  peers[userId] = call;
 };
 
 const addVideoStream = (videoEl, stream) => {
@@ -105,7 +115,8 @@ const addVideoStream = (videoEl, stream) => {
   }
 };
 
-const playStop = () => {
+// Play or Pause video
+document.getElementById("playPauseVideo").addEventListener("click", () => {
   let enabled = myVideoStream.getVideoTracks()[0].enabled;
   if (enabled) {
     myVideoStream.getVideoTracks()[0].enabled = false;
@@ -114,10 +125,12 @@ const playStop = () => {
     setStopVideo();
     myVideoStream.getVideoTracks()[0].enabled = true;
   }
-};
+});
 
-const muteUnmute = () => {
+// Mute or Unmute the participant
+document.getElementById("muteButton").addEventListener("click", () => {
   const enabled = myVideoStream.getAudioTracks()[0].enabled;
+  console.log(enabled);
   if (enabled) {
     myVideoStream.getAudioTracks()[0].enabled = false;
     setUnmuteButton();
@@ -125,7 +138,11 @@ const muteUnmute = () => {
     setMuteButton();
     myVideoStream.getAudioTracks()[0].enabled = true;
   }
-};
+});
+
+document.getElementById("leave-meeting").addEventListener("click", () => {
+  window.location.replace("/sessions");
+});
 
 const setPlayVideo = () => {
   const html = `<i class="unmute fa fa-pause-circle"></i>

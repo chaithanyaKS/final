@@ -19,7 +19,7 @@ app.get("/", (req, res) => {
   res.render("action");
 });
 
-app.post("/login", (req, res) => {
+app.post("/", (req, res) => {
   const meetingId = req.body.meetingId;
   console.log(meetingId);
   if (meetingId) {
@@ -29,7 +29,7 @@ app.post("/login", (req, res) => {
   }
 });
 
-app.post("/verify", (req, res) => {
+app.post("/login", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   const meetingId = req.body.meetingId;
@@ -45,6 +45,10 @@ app.post("/verify", (req, res) => {
 //   rsp.redirect(`/${uuidv4()}`);
 // });
 
+app.get("/sessions", (req, res) => {
+  res.send("session history");
+});
+
 app.get("/:room", (req, res) => {
   res.render("room", { roomId: req.params.room });
 });
@@ -56,6 +60,10 @@ io.on("connection", (socket) => {
 
     socket.on("message", (message) => {
       io.to(roomId).emit("createMessage", message);
+    });
+
+    socket.on("disconnect", () => {
+      socket.to(roomId).broadcast.emit("user-disconnected", userId);
     });
   });
 });
