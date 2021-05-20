@@ -117,3 +117,35 @@ video {
 .unmute {
   color: red;
 }
+
+.form-div {
+  width: 30%;
+  border: 2px solid #14171a;
+  border-radius: 10px;
+  box-shadow: darkgrey;
+  border-style: double;
+  position: relative;
+  top: 500px;
+  background-color: #cdd7e4;
+}
+.bg-img {
+  height: 900px;
+  background-image: url(/front.jpg);
+  background-repeat: no-repeat;
+  background-position: 0% 50%;
+  background-size: cover;
+}
+#topline {
+  margin: auto;
+  padding: 20px;
+  position: fixed;
+  width: 100%;
+  height: 80px;
+  text-align: center;
+}
+span {
+  text-transform: capitalize;
+  text-shadow: darkslategray;
+  line-height: 5rem;
+  text-shadow: 2px 2px 5px red;
+}
