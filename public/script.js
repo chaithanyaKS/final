@@ -62,6 +62,11 @@ socket.on("user-disconnected", (userId) => {
   if (peers[userId]) peers[userId].close();
 });
 
+socket.on("leave-meeting", () => {
+  console.log("leave meeting");
+  window.location.replace("/sessions");
+});
+
 myPeer.on("call", function (call) {
   getUserMedia(
     { video: true, audio: true },
@@ -140,8 +145,10 @@ document.getElementById("muteButton").addEventListener("click", () => {
   }
 });
 
+// leave meeting
 document.getElementById("leave-meeting").addEventListener("click", () => {
-  window.location.replace("/sessions");
+  socket.emit("leave-meeting");
+  // socket.window.location.replace("/sessions");
 });
 
 const setPlayVideo = () => {

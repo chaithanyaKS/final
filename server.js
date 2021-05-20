@@ -45,6 +45,7 @@ app.post("/login", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   if (loggedUsers.includes(username)) {
+    // TODO: add flash message
     res.send("user already logged in");
   }
   User.findOne({ where: { name: username, password } })
@@ -54,6 +55,7 @@ app.post("/login", (req, res) => {
         const meetingId = req.body.meetingId;
         res.redirect(`/${meetingId}`);
       } else {
+        // TODO: add flash message
         res.send("Invalid credentials");
       }
     })
@@ -81,6 +83,10 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
       socket.to(roomId).broadcast.emit("user-disconnected", userId);
+    });
+    socket.on("leave-meeting", () => {
+      console.log("leave meeting");
+      io.to(roomId).emit("leave-meeting");
     });
   });
 });
