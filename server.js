@@ -4,6 +4,7 @@ const server = require("http").Server(app);
 const { v4: uuidv4 } = require("uuid");
 const io = require("socket.io")(server);
 const UserModel = require("./models/user");
+const SessionModel = require("./models/session");
 const { Sequelize, DataTypes } = require("sequelize");
 
 const sequelize = new Sequelize(
@@ -11,10 +12,13 @@ const sequelize = new Sequelize(
 );
 
 const User = UserModel(sequelize, DataTypes);
+const Session = SessionModel(sequelize, DataTypes);
 
-const loggedUsers = [];
+let loggedUsers = [];
+let hostId = null;
 
 const { ExpressPeerServer } = require("peer");
+const { log } = require("console");
 const peerServer = ExpressPeerServer(server, {
   debug: true,
 });
@@ -44,6 +48,7 @@ app.post("/", (req, res) => {
 app.post("/login", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
+  const isNewMeeting = req.body.isNewMeeting;
   if (loggedUsers.includes(username)) {
     // TODO: add flash message
     res.send("user already logged in");
@@ -53,6 +58,9 @@ app.post("/login", (req, res) => {
       if (user) {
         loggedUsers.push(user.name);
         const meetingId = req.body.meetingId;
+        if (isNewMeeting) {
+          hostId = user.name;
+        }
         res.redirect(`/${meetingId}`);
       } else {
         // TODO: add flash message
@@ -65,7 +73,11 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/sessions", (req, res) => {
-  res.send("session history");
+  res.render("sessions");
+});
+
+app.get("/sessions/:id", (req, res) => {
+  res.render("session", { id: req.params.id });
 });
 
 app.get("/:room", (req, res) => {
@@ -83,6 +95,7 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
       socket.to(roomId).broadcast.emit("user-disconnected", userId);
+      loggedUsers = [];
     });
     socket.on("leave-meeting", () => {
       console.log("leave meeting");

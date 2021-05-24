@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+<!DOCTYPE html/>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="styles/style.css" />
+    <link rel="stylesheet" href="style.css" />
 
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css"
@@ -22,30 +22,29 @@
     <title>Form</title>
   </head>
   <body>
-    <div class="bg-img">
-      <div id="topline">
-        <span><h1>Some Logo</h1></span>
-      </div>
-      <div class="form-div mx-auto">
-        <form class="px-4 py-3" action="/" method="POST">
-          <div class="mb-3">
-            <label for="meeting-url" class="form-label">Meeting URL</label>
-            <input
-            type="text"
-            class="form-control"
-            id="meeting-url"
-            name="meetingId"
-            placeholder="email@example.com"
-            required
-            />
-            <button type="submit" class="btn btn-primary">Sign in</button>
-          </form>
-          </div>
-          <div class="mb-3">
-            <form action="/" method="post">
-              <button type="submit">New Meeting</button>
+    <div class="container">
+      <h1 class="title">Emotion Recognition in virtual learning Environment</h1>
+      <div class="form-container">
+        <div>
+          <div>
+            <form action="/" method="POST" class="join-room-form">
+              <input
+                type="text"
+                name="meetingId"
+                id="meeting-url"
+                placeholder="Meeting URL"
+                class="form-control"
+                required
+              />
+              <button type="submit" class="btn-primary">Join Room</button>
             </form>
           </div>
+          <div>
+            <form action="/" method="POST" class="new-meeting-form">
+              <button type="submit" class="btn-primary">New Meeting</button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   </body>
