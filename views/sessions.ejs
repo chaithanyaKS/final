@@ -22,12 +22,14 @@
     <div class="container">
       <h1 class="title session-title">List of all Sessions (Pending work)</h1>
       <ul class="session-list">
-        <% for( let index = 0; index < 10; index++ ) { %>
-        <a href="/sessions/<%= index+1 %> " class="session-list-items">
+        <% for(session of data) { %>
+        <a href="/sessions/<%= session.id %> " class="session-list-items">
           <li>
-            <p class="session-name">session <%= index + 1 %></p>
+            <p class="session-name"><%= session.sessionName %></p>
+            <p><%= session.hostName %></p>
             <p class="session-member-count">
-              number of members: 4 <span class="session-date">12-10-2020</span>
+              number of members: <%= session.noOfMembers ?? 0%>
+              <span class="session-date"><%= session.date %></span>
             </p>
           </li>
         </a>

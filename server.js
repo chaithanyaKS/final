@@ -15,10 +15,13 @@ const User = UserModel(sequelize, DataTypes);
 const Session = SessionModel(sequelize, DataTypes);
 
 let loggedUsers = [];
-let hostId = null;
+// TODO: set hostId to null
+let hostId = 3;
+let userPredictions = [];
+let userId;
+let sessionId;
 
 const { ExpressPeerServer } = require("peer");
-const { log } = require("console");
 const peerServer = ExpressPeerServer(server, {
   debug: true,
 });
@@ -48,18 +51,29 @@ app.post("/", (req, res) => {
 app.post("/login", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
+  const sessionName = req.body.sessionName;
   const isNewMeeting = req.body.isNewMeeting;
+  console.log(isNewMeeting);
   if (loggedUsers.includes(username)) {
     // TODO: add flash message
     res.send("user already logged in");
   }
   User.findOne({ where: { name: username, password } })
-    .then((user) => {
+    .then(async (user) => {
       if (user) {
-        loggedUsers.push(user.name);
+        loggedUsers.push(user.id);
+        userId = user.id;
         const meetingId = req.body.meetingId;
-        if (isNewMeeting) {
-          hostId = user.name;
+        if (isNewMeeting === "true") {
+          hostId = user.id;
+          console.log("host id: ", hostId);
+          sessionId = meetingId;
+          const newSession = Session.build({
+            hostId,
+            sessionId: meetingId,
+            sessionName,
+          });
+          await newSession.save();
         }
         res.redirect(`/${meetingId}`);
       } else {
@@ -72,19 +86,62 @@ app.post("/login", (req, res) => {
     });
 });
 
-app.get("/sessions", (req, res) => {
-  res.render("sessions");
+app.get("/sessions", async (req, res) => {
+  hostName = await User.findOne({ where: { id: hostId } });
+  Session.findAll({ where: { hostId } }).then((sessions) => {
+    const data = sessions.map((session) => ({
+      id: session.getDataValue("id"),
+      sessionId: session.getDataValue("sessionId"),
+      hostName: hostName.name,
+      sessionName: session.getDataValue("sessionName"),
+      date: session.getDataValue("updatedAt"),
+      noOfMembers:
+        session.getDataValue("sessionData") &&
+        JSON.parse(session.getDataValue("sessionData")).length,
+    }));
+    res.render("sessions", { data });
+  });
 });
 
-app.get("/sessions/:id", (req, res) => {
-  res.render("session", { id: req.params.id });
+app.get("/sessions/:id", async (req, res) => {
+  const id = Number.parseInt(req.params.id);
+  console.log(id);
+  const classes = ["Fear", "Happy", "Neutral", "Angry"];
+  const session = await Session.findOne({ where: { id } });
+  const sessionData =
+    session.getDataValue("sessionData") &&
+    JSON.parse(session.getDataValue("sessionData"));
+  const users = sessionData.map((user) => {
+    const [userName] = Object.keys(user);
+    return {
+      name: userName,
+      expression: classes[user[userName]],
+    };
+  });
+  const overallRating = Math.floor(
+    sessionData.reduce((acc, user) => (acc += +[Object.values(user)]), 0) /
+      sessionData.length
+  );
+  console.log("overallRating: ", overallRating);
+
+  const data = {
+    id: session.getDataValue("id"),
+    sessionId: session.getDataValue("sessionId"),
+    hostName: (await User.findOne({ where: { id: hostId } })).name,
+    sessionName: session.getDataValue("sessionName"),
+    users,
+    overallRating: classes[overallRating],
+  };
+  console.log(data);
+  res.render("session", { id: req.params.id, data });
 });
 
 app.get("/:room", (req, res) => {
-  res.render("room", { roomId: req.params.room });
+  res.render("room", { roomId: req.params.room, userId });
 });
 
 io.on("connection", (socket) => {
+  userPredictions = [];
   socket.on("join-room", (roomId, userId) => {
     socket.join(roomId);
     socket.to(roomId).broadcast.emit("user-connected", userId);
@@ -100,6 +157,19 @@ io.on("connection", (socket) => {
     socket.on("leave-meeting", () => {
       console.log("leave meeting");
       io.to(roomId).emit("leave-meeting");
+    });
+    socket.on("user-predictions", async (userId, labels) => {
+      if (Number.parseInt(userId) === hostId) return;
+      const user = (await User.findOne({ where: { id: userId } })).name;
+      const newUserPrediction = {
+        [user]: Math.floor(
+          labels.reduce((acc, val) => (acc += val), 0) / labels.length
+        ),
+      };
+      userPredictions.push(newUserPrediction);
+      const jsonData = JSON.stringify(userPredictions);
+      console.log("data:", jsonData);
+      Session.update({ sessionData: jsonData }, { where: { sessionId } });
     });
   });
 });

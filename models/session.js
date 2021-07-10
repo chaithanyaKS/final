@@ -14,8 +14,10 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   Session.init({
-    name: DataTypes.STRING,
-    status: DataTypes.STRING
+    sessionId: DataTypes.STRING,
+    hostId: DataTypes.INTEGER,
+    sessionName: DataTypes.STRING,
+    sessionData: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Session',

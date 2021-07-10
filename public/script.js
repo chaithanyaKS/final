@@ -6,6 +6,8 @@ const videoGrid = document.getElementById("video-grid");
 const myVideo = document.createElement("video");
 myVideo.muted = true;
 
+const labels = [];
+
 const myPeer = new Peer(undefined, {
   path: "/",
   host: "/",
@@ -27,6 +29,7 @@ navigator.mediaDevices
   })
   .then((stream) => {
     myVideoStream = stream;
+    app();
     addVideoStream(myVideo, stream);
 
     myPeer.on("call", (call) => {
@@ -58,12 +61,29 @@ navigator.mediaDevices
     });
   });
 
+async function app() {
+  const model = await tf.loadLayersModel("http://127.0.0.1:8080/model.json");
+  console.log("Model loaded Successfully");
+  const webcam = await tf.data.webcam(myVideo);
+  while (true) {
+    const img = await webcam.capture();
+    const resized = tf.image.resizeBilinear(img, [48, 48]);
+    const reshaped = tf.reshape(resized, [1, 48, 48, 3]);
+    const prediction = await model.predict(reshaped).data();
+    const label = await tf.argMax(prediction).data();
+    labels.push(label[0]);
+    img.dispose();
+    await tf.nextFrame();
+  }
+}
+
 socket.on("user-disconnected", (userId) => {
   if (peers[userId]) peers[userId].close();
 });
 
 socket.on("leave-meeting", () => {
   console.log("leave meeting");
+  socket.emit("user-predictions", userId, labels);
   window.location.replace("/sessions");
 });
 
@@ -148,7 +168,6 @@ document.getElementById("muteButton").addEventListener("click", () => {
 // leave meeting
 document.getElementById("leave-meeting").addEventListener("click", () => {
   socket.emit("leave-meeting");
-  // socket.window.location.replace("/sessions");
 });
 
 const setPlayVideo = () => {

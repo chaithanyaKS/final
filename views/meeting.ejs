@@ -36,6 +36,7 @@
               class="form-control"
               id="username"
               name="username"
+              required
             />
           </div>
           <div class="mb-3">
@@ -45,8 +46,21 @@
               class="form-control"
               id="password"
               name="password"
+              required
             />
           </div>
+          <% if (isNewMeeting) { %>
+          <div class="mb-3">
+            <label for="session-name" class="form-label">Session Name</label>
+            <input
+              type="text"
+              class="form-control"
+              id="session-name"
+              name="sessionName"
+              required
+            />
+          </div>
+          <% } %>
           <div class="mb-3">
             <label for="meeting-id" class="form-label">Meeting Id</label>
             <% if (isNewMeeting) { %>

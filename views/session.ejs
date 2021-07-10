@@ -21,11 +21,14 @@
     <div class="container">
       <h1 class="title">Session Report (Pending work)</h1>
       <ul class="report-container">
-        <% for( let index = 0; index < 5; index++ ) { %>
-        <li class="report-items">User1:</li>
+        <% for(user of data.users) { %>
+        <li class="report-items">
+          <span><%= user.name %></span>
+          <span style="float: right"><%= user.expression %></span>
+        </li>
         <% } %>
       </ul>
-      <h3>Overall Rating: Happy</h3>
+      <h3>Overall Rating: <%= data.overallRating %></h3>
     </div>
   </body>
 </html>

@@ -1,0 +1,52 @@
+<html>
+  <head>
+    <!-- Load the latest version of TensorFlow.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  </head>
+  <body>
+    <div id="console"></div>
+    <!-- Add an image that we will use to test -->
+    <!-- <img
+      id="img"
+      crossorigin
+      src="https://i.imgur.com/JlUvsxa.jpg"
+      width="227"
+      height="227"
+    /> -->
+    <video
+      autoplay
+      playsinlinkje
+      muted
+      id="webcam"
+      width="224"
+      height="224"
+    ></video>
+    <!-- Load index.js after the content of the page -->
+    <script>
+      const webcamElement = document.getElementById("webcam");
+      const classes = ["Fear", "Happy", "Neutral", "Angry"];
+
+      async function app() {
+        const model = await tf.loadLayersModel("./model.json");
+        console.log("Successfully loaded model");
+
+        const webcam = await tf.data.webcam(webcamElement);
+        while (true) {
+          const img = await webcam.capture();
+          const resized = tf.image.resizeBilinear(img, [48, 48]);
+          const reshaped = tf.reshape(resized, [1, 48, 48, 3]);
+          const prediction = await model.predict(reshaped).data();
+          const label = await tf.argMax(prediction).data();
+          console.log(label);
+          document.getElementById("console").innerText = `
+          label: ${classes[label]}
+          `;
+          img.dispose();
+          await tf.nextFrame();
+        }
+      }
+
+      app();
+    </script>
+  </body>
+</html>
