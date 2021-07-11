@@ -72,6 +72,7 @@ async function app() {
     const prediction = await model.predict(reshaped).data();
     const label = await tf.argMax(prediction).data();
     labels.push(label[0]);
+    console.log(labels);
     img.dispose();
     await tf.nextFrame();
   }
@@ -84,7 +85,11 @@ socket.on("user-disconnected", (userId) => {
 socket.on("leave-meeting", () => {
   console.log("leave meeting");
   socket.emit("user-predictions", userId, labels);
-  window.location.replace("/sessions");
+  if (userId === hostId) {
+    window.location.replace(`/sessions/${hostName}`);
+  } else {
+    window.location.replace("/");
+  }
 });
 
 myPeer.on("call", function (call) {

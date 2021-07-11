@@ -15,20 +15,23 @@
       integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
       crossorigin="anonymous"
     ></script>
-    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" type="text/css" href="/style.css" />
     <title>User Sessions</title>
   </head>
   <body>
     <div class="container">
-      <h1 class="title session-title">List of all Sessions (Pending work)</h1>
+      <h1 class="title session-title">List of all Sessions</h1>
       <ul class="session-list">
         <% for(session of data) { %>
-        <a href="/sessions/<%= session.id %> " class="session-list-items">
+        <a
+          href="/sessions/<%= session.hostName %>/<%= session.id %> "
+          class="session-list-items"
+        >
           <li>
             <p class="session-name"><%= session.sessionName %></p>
             <p><%= session.hostName %></p>
             <p class="session-member-count">
-              number of members: <%= session.noOfMembers ?? 0%>
+              number of members: <%= session.noOfMembers ?? 0 %>
               <span class="session-date"><%= session.date %></span>
             </p>
           </li>

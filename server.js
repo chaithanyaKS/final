@@ -17,6 +17,7 @@ const Session = SessionModel(sequelize, DataTypes);
 let loggedUsers = [];
 // TODO: set hostId to null
 let hostId = 3;
+let hostName;
 let userPredictions = [];
 let userId;
 let sessionId;
@@ -66,6 +67,7 @@ app.post("/login", (req, res) => {
         const meetingId = req.body.meetingId;
         if (isNewMeeting === "true") {
           hostId = user.id;
+          hostName = user.name;
           console.log("host id: ", hostId);
           sessionId = meetingId;
           const newSession = Session.build({
@@ -86,13 +88,13 @@ app.post("/login", (req, res) => {
     });
 });
 
-app.get("/sessions", async (req, res) => {
-  hostName = await User.findOne({ where: { id: hostId } });
+app.get(`/sessions/:name`, async (req, res) => {
+  hostName = req.params.name;
   Session.findAll({ where: { hostId } }).then((sessions) => {
     const data = sessions.map((session) => ({
       id: session.getDataValue("id"),
       sessionId: session.getDataValue("sessionId"),
-      hostName: hostName.name,
+      hostName: hostName,
       sessionName: session.getDataValue("sessionName"),
       date: session.getDataValue("updatedAt"),
       noOfMembers:
@@ -103,8 +105,9 @@ app.get("/sessions", async (req, res) => {
   });
 });
 
-app.get("/sessions/:id", async (req, res) => {
-  const id = Number.parseInt(req.params.id);
+app.get("/sessions/:name/:id", async (req, res) => {
+  const id = +req.params.id;
+  const hostName = req.params.name;
   console.log(id);
   const classes = ["Fear", "Happy", "Neutral", "Angry"];
   const session = await Session.findOne({ where: { id } });
@@ -127,7 +130,7 @@ app.get("/sessions/:id", async (req, res) => {
   const data = {
     id: session.getDataValue("id"),
     sessionId: session.getDataValue("sessionId"),
-    hostName: (await User.findOne({ where: { id: hostId } })).name,
+    hostName,
     sessionName: session.getDataValue("sessionName"),
     users,
     overallRating: classes[overallRating],
@@ -137,7 +140,7 @@ app.get("/sessions/:id", async (req, res) => {
 });
 
 app.get("/:room", (req, res) => {
-  res.render("room", { roomId: req.params.room, userId });
+  res.render("room", { roomId: req.params.room, userId, hostId, hostName });
 });
 
 io.on("connection", (socket) => {
@@ -166,7 +169,9 @@ io.on("connection", (socket) => {
           labels.reduce((acc, val) => (acc += val), 0) / labels.length
         ),
       };
+      console.log(labels);
       userPredictions.push(newUserPrediction);
+      console.log(userPredictions);
       const jsonData = JSON.stringify(userPredictions);
       console.log("data:", jsonData);
       Session.update({ sessionData: jsonData }, { where: { sessionId } });

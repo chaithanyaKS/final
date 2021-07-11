@@ -12,6 +12,12 @@ npm start
 peerjs --port 3001
 ```
 
+To start using the ML model we have to serve it by creating a local server. First navigate into the model directory and run the following command
+
+```
+ http-server -c1 --cors .
+```
+
 To create a the database run
 
 ```
