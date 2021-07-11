@@ -29,7 +29,7 @@ navigator.mediaDevices
   })
   .then((stream) => {
     myVideoStream = stream;
-    app();
+    predict();
     addVideoStream(myVideo, stream);
 
     myPeer.on("call", (call) => {
@@ -61,7 +61,7 @@ navigator.mediaDevices
     });
   });
 
-async function app() {
+async function predict() {
   const model = await tf.loadLayersModel("http://127.0.0.1:8080/model.json");
   console.log("Model loaded Successfully");
   const webcam = await tf.data.webcam(myVideo);
@@ -70,9 +70,12 @@ async function app() {
     const resized = tf.image.resizeBilinear(img, [48, 48]);
     const reshaped = tf.reshape(resized, [1, 48, 48, 3]);
     const prediction = await model.predict(reshaped).data();
-    const label = await tf.argMax(prediction).data();
-    labels.push(label[0]);
-    console.log(labels);
+    const confidence = await tf.max(prediction).data();
+    if (confidence > 0.8) {
+      const label = await tf.argMax(prediction).data();
+      labels.push(label[0]);
+      console.log(label);
+    }
     img.dispose();
     await tf.nextFrame();
   }

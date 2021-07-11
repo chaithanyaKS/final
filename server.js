@@ -56,7 +56,6 @@ app.post("/login", (req, res) => {
   const isNewMeeting = req.body.isNewMeeting;
   console.log(isNewMeeting);
   if (loggedUsers.includes(username)) {
-    // TODO: add flash message
     res.send("user already logged in");
   }
   User.findOne({ where: { name: username, password } })
@@ -79,7 +78,6 @@ app.post("/login", (req, res) => {
         }
         res.redirect(`/${meetingId}`);
       } else {
-        // TODO: add flash message
         res.send("Invalid credentials");
       }
     })
@@ -121,6 +119,9 @@ app.get("/sessions/:name/:id", async (req, res) => {
   const sessionData =
     session.getDataValue("sessionData") &&
     JSON.parse(session.getDataValue("sessionData"));
+  if (sessionData === null || sessionData === undefined) {
+    res.send("No Participants joined the meeting");
+  }
   const users = sessionData.map((user) => {
     const [userName] = Object.keys(user);
     return {

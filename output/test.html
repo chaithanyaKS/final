@@ -36,8 +36,11 @@
           const resized = tf.image.resizeBilinear(img, [48, 48]);
           const reshaped = tf.reshape(resized, [1, 48, 48, 3]);
           const prediction = await model.predict(reshaped).data();
+          const confidence = tf.max(prediction).dataSync();
           const label = await tf.argMax(prediction).data();
-          console.log(label);
+          if (confidence > 0.8) {
+            console.log(label);
+          }
           document.getElementById("console").innerText = `
           label: ${classes[label]}
           `;
