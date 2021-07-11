@@ -96,7 +96,14 @@ app.get(`/sessions/:name`, async (req, res) => {
       sessionId: session.getDataValue("sessionId"),
       hostName: hostName,
       sessionName: session.getDataValue("sessionName"),
-      date: session.getDataValue("updatedAt"),
+      date: new Date(session.getDataValue("updatedAt")).toLocaleString(
+        "en-US",
+        {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }
+      ),
       noOfMembers:
         session.getDataValue("sessionData") &&
         JSON.parse(session.getDataValue("sessionData")).length,
