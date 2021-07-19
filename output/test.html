@@ -2,6 +2,7 @@
   <head>
     <!-- Load the latest version of TensorFlow.js -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
   </head>
   <body>
     <div id="console"></div>
@@ -15,7 +16,7 @@
     /> -->
     <video
       autoplay
-      playsinlinkje
+      playsinline
       muted
       id="webcam"
       width="224"
@@ -23,32 +24,80 @@
     ></video>
     <!-- Load index.js after the content of the page -->
     <script>
-      const webcamElement = document.getElementById("webcam");
-      const classes = ["Fear", "Happy", "Neutral", "Angry"];
+      const video = document.getElementById("webcam");
+      //   const classes = ["Fear", "Happy", "Neutral", "Angry"];
+      const classes = {
+        0: "Angry",
+        1: "Disgusted",
+        2: "Fearful",
+        3: "Happy",
+        4: "Neutral",
+        5: "Sad",
+        6: "Surprised",
+      };
+
+      const setupCamera = () => {
+        navigator.mediaDevices
+          .getUserMedia({
+            video: { width: 600, height: 400 },
+            audio: false,
+          })
+          .then((stream) => {
+            video.srcObject = stream;
+          });
+      };
+
+      const detectFaces = async () => {
+        const prediction = await model.estimateFaces(video, false);
+        // print the prediction
+        console.log(prediction);
+      };
+
+      setupCamera();
+      // this event is fired when the video is loaded
+      video.addEventListener("loadeddata", async () => {
+        // wait for blazeface model to load
+
+        model = await blazeface.load();
+        // call the function
+        detectFaces();
+      });
 
       async function app() {
-        const model = await tf.loadLayersModel("./model.json");
+        // console.log("hi");
+        // const model = await tf.loadLayersModel(
+        //   "http://127.0.0.1:8080/model.json"
+        // );
+        const model = await blazeface.load();
         console.log("Successfully loaded model");
 
-        const webcam = await tf.data.webcam(webcamElement);
+        const webcam = await tf.data.webcam(video);
         while (true) {
           const img = await webcam.capture();
-          const resized = tf.image.resizeBilinear(img, [48, 48]);
-          const reshaped = tf.reshape(resized, [1, 48, 48, 3]);
-          const prediction = await model.predict(reshaped).data();
-          const confidence = tf.max(prediction).dataSync();
-          const label = await tf.argMax(prediction).data();
-          if (confidence > 0.8) {
-            console.log(label);
-          }
-          document.getElementById("console").innerText = `
-          label: ${classes[label]}
-          `;
-          img.dispose();
+          const resized = tf.image.resizeBilinear(img, [128, 128]);
+          const reshaped = tf.reshape(resized, [-1, 128, 128, 3]);
+          //   const prediction = await model.getBoundingBoxes(reshaped, true);
+          const predictions = await model.estimateFaces(img, true);
+          const { topLeft, bottomRight } = predictions[0];
+          const width = Math.floor(
+            bottomRight.dataSync()[0] - topLeft.dataSync()[0]
+          );
+          //   const reshaped = tf.reshape(resized, [-1, 48, 48, 1]);
+          //   //   const reshaped = resized;
+          //   const prediction = await model.predict(reshaped).data();
+          //   const confidence = tf.max(prediction).dataSync();
+          //   const label = await tf.argMax(prediction).data();
+          //   console.log(classes[label]);
+          //   console.log(label);
+          //   //   if (confidence > 0.8) {
+          //   //     console.log(label);
+          //   //   }
+          //   document.getElementById("console").innerText = `
+          //   label: ${classes[label]}
+          //   `;
           await tf.nextFrame();
         }
       }
-
       app();
     </script>
   </body>

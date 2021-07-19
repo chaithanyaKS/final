@@ -19,6 +19,7 @@
     <title>User Sessions</title>
   </head>
   <body>
+    <div class="gradient-background"></div>
     <div class="container">
       <h1 class="title session-title">List of all Sessions</h1>
       <ul class="session-list">
@@ -28,8 +29,11 @@
           class="session-list-items"
         >
           <li>
-            <p class="session-name"><%= session.sessionName %></p>
-            <p><%= session.hostName %></p>
+            <p>
+              Session Name :
+              <span class="name"><%= session.sessionName %></span>
+            </p>
+            <p>Host Name : <span class="name"><%= session.hostName %></span></p>
             <p class="session-member-count">
               number of members: <%= session.noOfMembers ?? 0 %>
               <span class="session-date"><%= session.date %></span>

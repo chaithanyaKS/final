@@ -16,13 +16,14 @@ const Session = SessionModel(sequelize, DataTypes);
 
 let loggedUsers = [];
 // TODO: set hostId to null
-let hostId = 3;
+let hostId;
 let hostName;
 let userPredictions = [];
 let userId;
 let sessionId;
 
 const { ExpressPeerServer } = require("peer");
+const { hostname } = require("os");
 const peerServer = ExpressPeerServer(server, {
   debug: true,
 });
@@ -113,8 +114,15 @@ app.get(`/sessions/:name`, async (req, res) => {
 app.get("/sessions/:name/:id", async (req, res) => {
   const id = +req.params.id;
   const hostName = req.params.name;
-  console.log(id);
-  const classes = ["Fear", "Happy", "Neutral", "Angry"];
+  const classes = [
+    "Neutral",
+    "Happy",
+    "Sad",
+    "Angry",
+    "Fearful",
+    "Disgusted",
+    "Surprised",
+  ];
   const session = await Session.findOne({ where: { id } });
   const sessionData =
     session.getDataValue("sessionData") &&
@@ -122,6 +130,7 @@ app.get("/sessions/:name/:id", async (req, res) => {
   if (sessionData === null || sessionData === undefined) {
     res.send("No Participants joined the meeting");
   }
+  console.log(sessionData);
   const users = sessionData.map((user) => {
     const [userName] = Object.keys(user);
     return {
@@ -134,7 +143,6 @@ app.get("/sessions/:name/:id", async (req, res) => {
       sessionData.length
   );
   console.log("overallRating: ", overallRating);
-
   const data = {
     id: session.getDataValue("id"),
     sessionId: session.getDataValue("sessionId"),
@@ -143,7 +151,7 @@ app.get("/sessions/:name/:id", async (req, res) => {
     users,
     overallRating: classes[overallRating],
   };
-  console.log(data);
+  console.log(hostname);
   res.render("session", { id: req.params.id, data });
 });
 

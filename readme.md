@@ -15,6 +15,7 @@ peerjs --port 3001
 To start using the ML model we have to serve it by creating a local server. First navigate into the model directory and run the following command
 
 ```
+ cd output/new_model
  http-server -c1 --cors .
 ```
 

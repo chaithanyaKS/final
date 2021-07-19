@@ -3,5 +3,5 @@
         "peerjs",
         "uuidv"
     ],
-    "python.pythonPath": "C:\\Users\\chait\\miniconda3\\python.exe"
+    "python.pythonPath": "C:\\Users\\chait\\miniconda3\\envs\\project\\python.exe"
 }
